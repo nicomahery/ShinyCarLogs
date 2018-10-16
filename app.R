@@ -39,7 +39,8 @@ ui <- fluidPage(
            "Consumption with RPM",
            fluidRow(
              #verbatimTextOutput(outputId = "CountText"),
-             plotOutput(outputId = "ConRPMGraph")
+             plotOutput(outputId = "ConRPMGraph"),
+             plotOutput(outputId = "LineGraph")
            )
          )
        )
@@ -81,7 +82,6 @@ server <- function(input, output) {
     colnames(ConRPM)[3] <- 'consumption'
     colnames(ConRPM)[4] <- 'pedalPosition'
     colnames(ConRPM)[5] <- 'speed'
-    print(ConRPM)
     return (ConRPM)
   })
   
@@ -102,9 +102,12 @@ server <- function(input, output) {
   output$ConRPMGraph <- renderPlot({
     chartTitle <- "Consumption with engine RPM"
     chartData <- ConRPMSet()
-    ggplot(
-      data = ConRPMSet()
-    )
+    ggplot(data = ConRPMSet()) + geom_point(mapping = aes(x = ConRPMSet()$consumption, y = ConRPMSet()$rpm, color = ConRPMSet()$drivingStyle))
+  })
+  
+  #Output Lines
+  output$LineGraph <- renderPlot({
+    ggplot(data=ConRPMSet(), aes(x=ConRPMSet()$time, y=ConRPMSet()$rpm, group=1)) + geom_line(color="red") + geom_point()
   })
 }
 
