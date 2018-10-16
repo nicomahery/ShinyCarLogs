@@ -92,8 +92,7 @@ server <- function(input, output) {
   })
   
   #Output data table
-  #output$contentTable <- renderTable({ dataSet() })
-  output$contentTable <- renderTable({ ConRPMSet() })
+  output$contentTable <- renderTable({ dataSet() })
   
   #Output count
   #output$CountText <- renderText({paste("Row count:", toString(nrow(ConRPMSet())), " Col count:",toString(ncol(ConRPMSet()))) })
