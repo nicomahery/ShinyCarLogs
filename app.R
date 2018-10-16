@@ -73,7 +73,8 @@ server <- function(input, output) {
       rpm <-  as.numeric(dataSet()$Engine.RPM.rpm.),
       consumption <- as.numeric(dataSet()$Fuel.flow.rate.minute.cc.min.),
       pedalPosition <- as.numeric(dataSet()$Accelerator.PedalPosition.D...),
-      speed <- as.numeric(dataSet()$Speed..OBD..km.h.)
+      speed <- as.numeric(dataSet()$Speed..OBD..km.h.),
+      drivingStyle <- dataSet()$Driving.Style
     )
     colnames(ConRPM)[1] <- 'time'
     colnames(ConRPM)[2] <- 'rpm'
