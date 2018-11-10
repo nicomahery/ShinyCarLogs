@@ -43,8 +43,8 @@ ui <- fluidPage(
            mainPanel(
              fluidRow(
                #verbatimTextOutput(outputId = "CountText"),
-               plotOutput(outputId = "ConRPMGraph"),
-               plotOutput(outputId = "LineGraph")
+               plotOutput(outputId = "BVariatePoints"),
+               plotOutput(outputId = "BVariateLine")
            )
          )
        )
@@ -53,12 +53,13 @@ ui <- fluidPage(
         "Univariate Analysis",
         sidebarLayout(
           sidebarPanel(
-            selectInput('Uxcol', 'Variable', UdataLabels)
+            selectInput('Uvar', 'Variable', UdataLabels)
           ),
           
           mainPanel(
             fluidRow(
               #verbatimTextOutput(outputId = "CountText"),
+              plotOutput(outputId = "UVariatePoints"),
               leafletOutput(outputId = "TestMap")
             )
           )
@@ -83,11 +84,11 @@ server <- function(input, output) {
   
   #Get specific subset from reactive dataset
   ConRPM <- data.frame(
-    timeRegister <- dataSet$Device.Time,
-    rpm <-  as.numeric(dataSet$Engine.RPM.rpm.),
-    consumption <- dataSet$Fuel.flow.rate.minute.cc.min.,
-    pedalPosition <- dataSet$Accelerator.PedalPosition.D...,
-    speed <- as.numeric(dataSet$Speed..OBD..km.h.),
+    timeRegister <- strptime(gsub('-', '.', dataSet$Device.Time), "%d/%m/%Y %H:%M:%OS"),
+    rpm <-  dataSet$Engine.RPM.rpm.,
+    consumption <- substr(dataSet$Fuel.flow.rate.minute.cc.min., 1, 5),
+    pedalPosition <- substr(dataSet$Accelerator.PedalPosition.D..., 1, 4),
+    speed <- dataSet$Speed..OBD..km.h.,
     drivingStyle <- as.character(dataSet$Driving.Style)
   )
   colnames(ConRPM)[1] <- 'time'
@@ -96,9 +97,16 @@ server <- function(input, output) {
   colnames(ConRPM)[4] <- 'pedalPosition'
   colnames(ConRPM)[5] <- 'speed'
   colnames(ConRPM)[6] <- 'DrivingStyle'
+  print(ConRPM)
   
-  selectedData <- reactive({
-    data.frame(ConRPM[, c(input$Bxcol, input$Bycol, "DrivingStyle")])
+  #BiVariate analysis retrieve selected variables
+  selectedBivariate <- reactive({
+    data.frame(ConRPM[, c(input$Bxcol, input$Bycol, "DrivingStyle", "time")])
+  })
+  
+  #UniVariate analysis retrieve selected variable
+  selectedUnivariate <- reactive({
+    data.frame(ConRPM[, c(input$Uvar, "DrivingStyle")])
   })
   
   #Correlation matrix
@@ -112,17 +120,18 @@ server <- function(input, output) {
   #output$contentTable <- renderTable({ dataSet })
   output$contentTable <- renderTable({ ConRPM })
   
-  #Output plot
-  output$ConRPMGraph <- renderPlot({
+  #Output BiVariate plot Points
+  output$BVariatePoints <- renderPlot({
     chartTitle <- "Nuage de points en fonction du style de conduite"
-    chartData <- selectedData()
-    ggplot(data = selectedData()) + geom_point(mapping = aes(x = selectedData()[1][,1], y = selectedData()[2][,1], color = selectedData()[3][,1])) + labs(x = input$Bxcol, y = input$Bycol, color = "Driving Style")
+    chartData <- selectedBivariate()
+    ggplot(data = selectedBivariate()) + geom_point(mapping = aes(x = selectedBivariate()[1][,1], y = as.numeric(selectedBivariate()[2][,1]), color = selectedBivariate()[3][,1])) + labs(x = input$Bxcol, y = input$Bycol, color = "Driving Style") + scale_x_discrete()
   })
   
   
-  #Output Lines
-  output$LineGraph <- renderPlot({
-    ggplot(data=ConRPM, aes(x=ConRPM$time, y=ConRPM$rpm, group=1)) + geom_line(color="red") + geom_point()
+  #Output Bivariate Plot Lines
+  output$BVariateLine <- renderPlot({
+    #ggplot(data=selectedBivariate(), aes(x = ConRPM$time)) + geom_line(aes(y = selectedBivariate()[1][,1]), color="red") + geom_line(aes(y = selectedBivariate()[3][,1]), color="green")  + labs(x = ConRPM$time, y = input$Bycol) + scale_x_continuous() + scale_y_continuous()#+ geom_point()
+    ggplot(group = 1, data = selectedBivariate(), aes(x = selectedBivariate()[4][,1])) + geom_line(aes(y = as.numeric(selectedBivariate()[1][,1])), color = "blue") + geom_line(aes(y = as.numeric(selectedBivariate()[2][,1])), color = "red") + labs(x = "Time", y = input$Bxcol)
   })
   
   #Output Map
