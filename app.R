@@ -14,8 +14,8 @@ library(dplyr)
 library(ggplot2)
 library(reshape2)
 
-BdataLabels <- c('rpm', 'consumption', 'pedalPosition', 'speed')
-UdataLabels <- c('rpm', 'consumption', 'pedalPosition', 'speed', 'DrivingStyle')
+BdataLabels <- c('Régime moteur', 'Consommation', 'Position accélérateur', 'Vitesse')
+UdataLabels <- c('Régime moteur', 'Consommation', 'Position accélérateur', 'Vitesse', 'Style de conduite')
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -26,14 +26,14 @@ ui <- fluidPage(
      tabsetPanel(
        type = "tabs",
        tabPanel(
-         "Table",
+         "Données",
           fluidRow(
             #verbatimTextOutput(outputId = "CountText"),
             tableOutput(outputId = "contentTable")
           )
        ),
        tabPanel(
-         "Bivariate Analysis",
+         "Analyse Bivariée",
          sidebarLayout(
            sidebarPanel(
              selectInput('Bxcol', 'Variable X', BdataLabels),
@@ -42,7 +42,7 @@ ui <- fluidPage(
            
            mainPanel(
              fluidRow(
-               #verbatimTextOutput(outputId = "CountText"),
+               verbatimTextOutput(outputId = "BCorCovText"),
                plotOutput(outputId = "BVariatePoints"),
                plotOutput(outputId = "BVariateLine")
            )
@@ -50,7 +50,7 @@ ui <- fluidPage(
        )
       ),
       tabPanel(
-        "Univariate Analysis",
+        "Analyse Univariée",
         sidebarLayout(
           sidebarPanel(
             selectInput('Uvar', 'Variable', UdataLabels)
@@ -58,8 +58,8 @@ ui <- fluidPage(
           
           mainPanel(
             fluidRow(
-              #verbatimTextOutput(outputId = "CountText"),
-              plotOutput(outputId = "UVariatePoints"),
+              verbatimTextOutput(outputId = "USummary"),
+              plotOutput(outputId = "UPie"),
               leafletOutput(outputId = "TestMap")
             )
           )
@@ -71,42 +71,45 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  #output$tripMap <- renderLeaflet({
-  #  inFile <- input$tripFile
-  #  if(is.null(inFile)) return (NULL)
-    #trip <- geojsonio::geojson_read("GeoJson/geo_trackLog-2018-sept.-04_07-28-47.geojson")
-  #  trip <- geojsonio::geojson_read(inFile$datapath)
-  #  leaflet(trip)
-  #})
   
-  #Get data via reactive
+  #Get data via file
   dataSet <- data.frame(read.csv("./Datasets/CarLog1.csv", header = TRUE))
   
   #Get specific subset from reactive dataset
   ConRPM <- data.frame(
     timeRegister <- strptime(gsub('-', '.', dataSet$Device.Time), "%d/%m/%Y %H:%M:%OS"),
-    rpm <-  dataSet$Engine.RPM.rpm.,
-    consumption <- substr(dataSet$Fuel.flow.rate.minute.cc.min., 1, 5),
-    pedalPosition <- substr(dataSet$Accelerator.PedalPosition.D..., 1, 4),
-    speed <- dataSet$Speed..OBD..km.h.,
-    drivingStyle <- as.character(dataSet$Driving.Style)
+    rpm <-  as.numeric(dataSet$Engine.RPM.rpm.),
+    consumption <- as.numeric(substr(dataSet$Fuel.flow.rate.minute.cc.min., 1, 5)),
+    pedalPosition <- as.numeric(substr(dataSet$Accelerator.PedalPosition.D..., 1, 4)),
+    speed <- as.numeric(dataSet$Speed..OBD..km.h.),
+    drivingStyle <- as.character(dataSet$Driving.Style),
+    longitude <- dataSet$Longitude,
+    latitude <- dataSet$Latitude
   )
-  colnames(ConRPM)[1] <- 'time'
-  colnames(ConRPM)[2] <- 'rpm'
-  colnames(ConRPM)[3] <- 'consumption'
-  colnames(ConRPM)[4] <- 'pedalPosition'
-  colnames(ConRPM)[5] <- 'speed'
-  colnames(ConRPM)[6] <- 'DrivingStyle'
-  print(ConRPM)
+  colnames(ConRPM)[1] <- 'Temps'
+  colnames(ConRPM)[2] <- 'Régime moteur'
+  colnames(ConRPM)[3] <- 'Consommation'
+  colnames(ConRPM)[4] <- 'Position accélérateur'
+  colnames(ConRPM)[5] <- 'Vitesse'
+  colnames(ConRPM)[6] <- 'Style de conduite'
+  colnames(ConRPM)[7] <- 'Longitude'
+  colnames(ConRPM)[8] <- 'Latitude'
   
   #BiVariate analysis retrieve selected variables
   selectedBivariate <- reactive({
-    data.frame(ConRPM[, c(input$Bxcol, input$Bycol, "DrivingStyle", "time")])
+    data.frame(ConRPM[, c(input$Bxcol, input$Bycol, "Style de conduite", "Temps")])
   })
   
+  BMatrix <- reactive({
+    data.frame(
+      Covariance <- cov(x = as.numeric(selectedBivariate()[1][,1]), y = as.numeric(selectedBivariate()[2][,1]), use="complete.obs", method = "kendall"),
+      Correlation <- cor(x = as.numeric(selectedBivariate()[1][,1]), y = as.numeric(selectedBivariate()[2][,1]),  use="complete.obs", method = "kendall")
+    )
+  })
+    
   #UniVariate analysis retrieve selected variable
   selectedUnivariate <- reactive({
-    data.frame(ConRPM[, c(input$Uvar, "DrivingStyle")])
+    data.frame(ConRPM[, c(input$Uvar, "Style de conduite", "Temps")])
   })
   
   #Correlation matrix
@@ -117,8 +120,13 @@ server <- function(input, output) {
   })
   
   #Output data table
-  #output$contentTable <- renderTable({ dataSet })
   output$contentTable <- renderTable({ ConRPM })
+  
+  output$BCorCovText <- renderText({
+    paste(input$Bxcol, "\n", summary(selectedBivariate()[1][,1]), "\n")
+    paste(input$Bycol, "\n", summary(selectedBivariate()[2][,1]), "\n")
+    paste("Covariance : ", BMatrix()[1][,1], "\nCoeff. Correlation (Kendall) : ", BMatrix()[2][,1])
+  })
   
   #Output BiVariate plot Points
   output$BVariatePoints <- renderPlot({
@@ -130,15 +138,28 @@ server <- function(input, output) {
   
   #Output Bivariate Plot Lines
   output$BVariateLine <- renderPlot({
-    #ggplot(data=selectedBivariate(), aes(x = ConRPM$time)) + geom_line(aes(y = selectedBivariate()[1][,1]), color="red") + geom_line(aes(y = selectedBivariate()[3][,1]), color="green")  + labs(x = ConRPM$time, y = input$Bycol) + scale_x_continuous() + scale_y_continuous()#+ geom_point()
-    ggplot(group = 1, data = selectedBivariate(), aes(x = selectedBivariate()[4][,1])) + geom_line(aes(y = as.numeric(selectedBivariate()[1][,1])), color = "blue") + geom_line(aes(y = as.numeric(selectedBivariate()[2][,1])), color = "red") + labs(x = "Time", y = input$Bxcol)
+    
+    ggplot(group = 1, data = selectedBivariate(), aes(x = selectedBivariate()[4][,1])) + geom_line(aes(y = as.numeric(selectedBivariate()[1][,1]), color = input$Bxcol)) + geom_line(aes(y = as.numeric(selectedBivariate()[2][,1]), color = input$Bycol)) + labs(x = "Temps", y = input$Bxcol) + scale_y_continuous(sec.axis = sec_axis(~.*1, name = input$Bycol)) + guides(fill=guide_legend(title="Légende")) 
+  })
+  
+  #Output Pie for Univariate analysis
+  output$UPie <- renderPlot({
+    pie(selectedUnivariate(), x= table(selectedUnivariate()[1][,1]),labels= selectedUnivariate()[2][,1])
   })
   
   #Output Map
   output$TestMap <- renderLeaflet({
-    map <- leaflet() %>%
-      addProviderTiles(providers$OpenStreetMap.France)
-      setView(lng = 48.8566, lat = 2.3522, zoom = 12)
+    leaflet(data = ConRPM) %>%
+      addTiles(
+        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+      ) %>%
+      setView(lng = 2.3522219, lat = 48.856614, zoom = 10) %>% addPolylines(lng = ~longitude, lat =~latitude)
+  })
+  
+  #Summary for the Univariate Analysis
+  output$USummary <- renderText({
+    summary(selectedUnivariate()[1])
   })
 }
 
