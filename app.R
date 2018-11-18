@@ -15,9 +15,9 @@ library(ggplot2)
 library(reshape2)
 
 BdataLabels <- c('Régime moteur (tr/min)', 'Consommation (cc/min)', 'Position de la pédale accélérateur (%)', 'Vitesse (km/h)', 'Charge moteur (%)', 'Altitude (m)', 'Pression de l air en entrée (psi)', 
-                 'Temperature de l air en entrée (C)', 'Puissance moteur (KW)', 'Temperature du liquide de refroidissement (C)', 'Position de l accélérateur au collecteur d air (%)')
+                 'Temperature de l air en entrée (C)', 'Puissance moteur (KW)', 'Temperature du liquide de refroidissement (C)', 'Position de l accélérateur au collecteur d admission (%)')
 UdataLabels <- c('Régime moteur (tr/min)', 'Consommation (cc/min)', 'Position de la pédale accélérateur (%)', 'Vitesse (km/h)', 'Charge moteur (%)', 'Altitude (m)', 'Pression de l air en entrée (psi)',
-                 'Temperature de l air en entrée (C)', 'Puissance moteur (KW)', 'Temperature du liquide de refroidissement (C)', 'Position de l accélérateur au collecteur d air (%)', 'Style de conduite')
+                 'Temperature de l air en entrée (C)', 'Puissance moteur (KW)', 'Temperature du liquide de refroidissement (C)', 'Position de l accélérateur au collecteur d admission (%)', 'Style de conduite')
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -35,7 +35,7 @@ ui <- fluidPage(
              
            ),
            mainPanel(
-            includeMarkdown("analyse.md")
+            includeMarkdown("Analyse.md")
            )
          )
        ),
@@ -123,7 +123,7 @@ server <- function(input, output) {
   colnames(ConRPM)[12] <- 'Temperature de l air en entrée (C)'
   colnames(ConRPM)[13] <- 'Puissance moteur (KW)'
   colnames(ConRPM)[14] <- 'Temperature du liquide de refroidissement (C)'
-  colnames(ConRPM)[15] <- 'Position de l accélérateur au collecteur d air (%)'
+  colnames(ConRPM)[15] <- 'Position de l accélérateur au collecteur d admission (%)'
   
   #BiVariate analysis retrieve selected variables
   selectedBivariate <- reactive({
@@ -148,16 +148,16 @@ server <- function(input, output) {
   pal <- reactive({
     createColor <-  colorRampPalette(c('blue', 'red'), length(selectedUnivariate()[complete.cases(selectedUnivariate()),][1][,1]))
     
-    if (input$Uvar != 'Régime moteur' && input$Uvar != 'Altitude') {
+    if (input$Uvar == 'Vitesse (km/h)') {
       result <- "FF0000"
     }
-    #else {
+    else {
       ress <- colorNumeric(
         palette = createColor(selectedUnivariate()[complete.cases(selectedUnivariate()),][1][,1]),
         domain = selectedUnivariate()[complete.cases(selectedUnivariate()),][1][,1]
       )
       result <- ress(selectedUnivariate()[complete.cases(selectedUnivariate()),][1][,1])
-    #}
+    }
     return(result)
   })
   #Frequence dataframe for the univariate Analysis
