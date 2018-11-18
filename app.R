@@ -198,7 +198,7 @@ server <- function(input, output) {
   
   #Output Bivariate Plot Lines
   output$UVariateLine <- renderPlot({
-    ggplot(group = 1, data = selectedBivariate(), aes(x = selectedUnivariate()[3][,1])) + geom_line(aes(y = as.numeric(selectedUnivariate()[1][,1]), color = input$Uvar)) + labs(x = "Temps", y = input$Uvar, color = "Style de conduite") + ggtitle(paste("Télémétrie du trajet pour la variable ", input$Uvar))
+    ggplot(group = 1, data = selectedUnivariate(), aes(x = selectedUnivariate()[3][,1])) + geom_line(aes(y = as.numeric(selectedUnivariate()[1][,1]), color = input$Uvar)) + labs(x = "Temps", y = input$Uvar, color = "Légende") + ggtitle(paste("Valeurs du trajet pour la variable ", input$Uvar))
   })
   
   #Output Distribution for Univariate analysis hist
