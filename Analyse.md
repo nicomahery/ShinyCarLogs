@@ -61,7 +61,7 @@ Regardons la relation qu'a la variable, position de la pédal d'accélérateur a
 Pour ce faire, nous allons utiliser l'onglet "Analyse Bivariée" qui nous permet de comparer deux variables.
 Commençons par comparer la position de la pédale d'accélérateuret la consommation 
 
-![alt text](https://raw.githubusercontent.com/nicomahery/ShinyCarLogs/master/images/Capture1.PNG "Données comparatives")
+![alt text](https://raw.githubusercontent.com/nicomahery/ShinyCarLogs/master/images/Capture1.PNG "Données comparatives entre la consommation et la position de la pédale d'accélérateur")
 
 On remarque en premier lieu un coefficient de corrélation au dessus de 0.5.
 Mais avec un coefficient de corrélation en dessous de 0.75, on ne peut pas affirmer que la corrélation est absolue entre le fait d'appuyer sur l'accélérateur et la consommation du véhicule.
@@ -70,6 +70,7 @@ Cela signifie que la consommation du véhicule peut être provoqué par autre ch
 Afin d'aller un peu plus loin il est nécessaire de regarder comment fonctionne l'accélérateur d'une voiture qui permet d'injecter plus ou moins de carburant dans le système de conbustion.
 Nous allons maintenant regarder comment réagit la position de l'accélérateur au niveau de l'admission 
 
+![alt text](https://raw.githubusercontent.com/nicomahery/ShinyCarLogs/master/images/Capture2.PNG "Données comparatives entre la consommation et la position de la pédale d'accélérateur")
 
 [^1]: ECU: Engine Control Unit, ordinateur qui gère l'ensemble du moteur (capteurs et actionneurs)
 [^2]: OBD2: Protocole du matériel permettant le diagnostique électronique sur les véhicules à partir des années 2000
