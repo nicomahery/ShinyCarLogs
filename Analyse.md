@@ -72,6 +72,8 @@ Nous allons maintenant regarder comment réagit la position de l'accélérateur 
 
 ![alt text](https://raw.githubusercontent.com/nicomahery/ShinyCarLogs/master/images/Capture2.PNG "Données comparatives entre la consommation et la position de la pédale d'accélérateur")
 
+Cependant, il semblerait 
+
 [^1]: ECU: Engine Control Unit, ordinateur qui gère l'ensemble du moteur (capteurs et actionneurs)
 [^2]: OBD2: Protocole du matériel permettant le diagnostique électronique sur les véhicules à partir des années 2000
 [^3]: E10: anciennement SP95-E10 (sans plomb 95 contenant environ 10 % d'agroéthanol)
