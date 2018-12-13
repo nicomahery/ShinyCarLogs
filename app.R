@@ -1,18 +1,7 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-options(shiny.maxRequestSize=800*1024^2) 
+
 library(shiny)
 library(leaflet)
-library(geojsonio)
-library(dplyr)
 library(ggplot2)
-library(reshape2)
 
 BdataLabels <- c('Régime moteur (tr/min)', 'Consommation (cc/min)', 'Position de la pédale accélérateur (%)', 'Vitesse (km/h)', 'Charge moteur (%)', 'Altitude (m)', 'Pression de l air en entrée (psi)', 
                  'Temperature de l air en entrée (C)', 'Puissance moteur (KW)', 'Temperature du liquide de refroidissement (C)', 'Position de l accélérateur au collecteur d admission (%)')
@@ -21,93 +10,95 @@ UdataLabels <- c('Régime moteur (tr/min)', 'Consommation (cc/min)', 'Position d
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-   
+  
   #theme = "bootstrap.css",
-   # Application title
-   titlePanel("Trips"),
-     tabsetPanel(
-       type = "tabs",
-       
-       tabPanel(
-         "Analyse",
-         sidebarLayout(
-           sidebarPanel(
-             
-           ),
-           mainPanel(
-            includeMarkdown("Analyse.md")
-           )
-         )
-       ),
-       tabPanel(
-         "Données",
-          fluidRow(
-            #verbatimTextOutput(outputId = "CountText"),
-            tableOutput(outputId = "contentTable")
-          )
-       ),
-       tabPanel(
-         "Analyse Bivariée",
-         sidebarLayout(
-           sidebarPanel(
-             selectInput('Bxcol', 'Variable X', BdataLabels),
-             selectInput('Bycol', 'Variable Y', BdataLabels, selected = BdataLabels[2])
-           ),
-           
-           mainPanel(
-             fluidRow(
-               verbatimTextOutput(outputId = "BCorCovText"),
-               plotOutput(outputId = "BVariatePoints"),
-               plotOutput(outputId = "BVariateLine")
-           )
-         )
-       )
-      ),
-      tabPanel(
-        "Analyse Univariée",
-        sidebarLayout(
-          sidebarPanel(
-            selectInput('Uvar', 'Variable', UdataLabels)
-          ),
+  # Application title
+  titlePanel("Trips"),
+  tabsetPanel(
+    type = "tabs",
+    
+    tabPanel(
+      "Analyse",
+      sidebarLayout(
+        sidebarPanel(
           
-          mainPanel(
-            fluidRow(
-              verbatimTextOutput(outputId = "USummary"),
-              leafletOutput(outputId = "TestMap", height = 600),
-              plotOutput(outputId = "UVariateLine"),
-              plotOutput(outputId = "UDist"),
-              plotOutput(outputId = "UDens")
-            )
+        ),
+        mainPanel(
+          includeHTML("Analyse.html")
+        )
+      )
+    ),
+    tabPanel(
+      "Données",
+      fluidRow(
+        #verbatimTextOutput(outputId = "CountText"),
+        tableOutput(outputId = "contentTable")
+      )
+    ),
+    tabPanel(
+      "Analyse Bivariée",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput('Bxcol', 'Variable X', BdataLabels),
+          selectInput('Bycol', 'Variable Y', BdataLabels, selected = BdataLabels[2])
+        ),
+        
+        mainPanel(
+          fluidRow(
+            verbatimTextOutput(outputId = "BCorCovText"),
+            plotOutput(outputId = "BVariatePoints"),
+            plotOutput(outputId = "BVariateLine")
+          )
+        )
+      )
+    ),
+    tabPanel(
+      "Analyse Univariée",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput('Uvar', 'Variable', UdataLabels)
+        ),
+        
+        mainPanel(
+          fluidRow(
+            verbatimTextOutput(outputId = "USummary"),
+            leafletOutput(outputId = "TestMap", height = 600),
+            plotOutput(outputId = "UVariateLine"),
+            plotOutput(outputId = "UDist"),
+            plotOutput(outputId = "UDens")
           )
         )
       )
     )
+  )
 )
-   #leafletOutput("tripMap")
+#leafletOutput("tripMap")
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
   #Get data via file
-  dataSet <- data.frame(read.csv("./Datasets/CarLogs1.csv", header = TRUE))
+  dataSet <- data.frame(read.csv("CarLogs1.csv", header = TRUE))
   
+  print(dataSet)
+  colnames(dataSet)
   #Get specific subset from reactive dataset
   ConRPM <- data.frame(
-    timeRegister <- strptime(gsub('-', '.', dataSet$Device.Time), "%d/%m/%Y %H:%M:%OS"),
-    rpm <-  as.numeric(dataSet$Engine.RPM.rpm.),
-    consumption <- as.numeric(substr(dataSet$Fuel.flow.rate.minute.cc.min., 1, 5)),
-    pedalPosition <- as.numeric(substr(dataSet$Accelerator.PedalPosition.D..., 1, 4)),
-    speed <- as.numeric(dataSet$Speed..OBD..km.h.),
-    drivingStyle <- as.character(dataSet$Driving.Style),
-    longitude <- dataSet$Longitude,
-    latitude <- dataSet$Latitude,
-    engineLoad <- as.numeric(substr(dataSet$Engine.Load..., 1, 5)),
-    altitude <- as.numeric(substr(dataSet$Altitude, 1, 5)),
-    intakAirPressure <- as.numeric(substr(dataSet$Intake.Manifold.Pressure.psi., 1, 5)),
-    intakAirTemp <- as.numeric(substr(dataSet$Intake.Air.Temperature.Â.C., 1, 5)),
-    puissanceMoteur <- as.numeric(substr(dataSet$Engine.kW..At.the.wheels..kW., 1, 5)),
-    coolantTemp <- as.numeric(substr(dataSet$Engine.Coolant.Temperature.Â.C., 1, 5)),
-    throttlePositionManifold <- as.numeric(substr(dataSet$Throttle.Position.Manifold...., 1, 5))
+    timeRegister <- strptime(gsub('-', '.', dataSet[[2]]), "%d/%m/%Y %H:%M:%OS"),
+    rpm <-  as.numeric(dataSet[[58]]),
+    consumption <- as.numeric(substr(dataSet[[27]], 1, 5)),
+    pedalPosition <- as.numeric(substr(dataSet[[15]], 1, 4)),
+    speed <- as.numeric(dataSet[[75]]),
+    drivingStyle <- as.character(dataSet[[76]]),
+    longitude <- dataSet[[3]],
+    latitude <- dataSet[[4]],
+    engineLoad <- as.numeric(substr(dataSet[[24]], 1, 5)),
+    altitude <- as.numeric(substr(dataSet[[7]], 1, 5)),
+    intakAirPressure <- as.numeric(substr(dataSet[[52]], 1, 5)),
+    intakAirTemp <- as.numeric(substr(dataSet[[69]], 1, 5)),
+    puissanceMoteur <- as.numeric(substr(dataSet[[57]], 1, 5)),
+    coolantTemp <- as.numeric(substr(dataSet[[70]], 1, 5)),
+    throttlePositionManifold <- as.numeric(substr(dataSet[[17]], 1, 5))
   )
   colnames(ConRPM)[1] <- 'Temps'
   colnames(ConRPM)[2] <- 'Régime moteur (tr/min)'
@@ -137,7 +128,7 @@ server <- function(input, output) {
       Correlation <- cor(x = as.numeric(selectedBivariate()[1][,1]), y = as.numeric(selectedBivariate()[2][,1]),  use="complete.obs", method = "kendall")
     )
   })
-    
+  
   #UniVariate analysis retrieve selected variable
   selectedUnivariate <- reactive({
     ddf <- data.frame(ConRPM[, c(input$Uvar, "Style de conduite", "Temps", "Longitude", "Latitude")])
@@ -204,13 +195,13 @@ server <- function(input, output) {
   #Output Distribution for Univariate analysis hist
   output$UDist <- renderPlot({
     if (input$Uvar != "Style de conduite")
-    ggplot(data = selectedData, aes(selectedUnivariate()[1][,1], color = selectedUnivariate()[2][,1])) + geom_histogram() + labs(x= input$Uvar, color = "Style de conduite") + ggtitle(paste("Fréquence de ", input$Uvar, " en fonction du style de conduite"))
+      ggplot(data = selectedUnivariate(), aes(selectedUnivariate()[1][,1], color = selectedUnivariate()[2][,1])) + geom_histogram() + labs(x= input$Uvar, color = "Style de conduite") + ggtitle(paste("Fréquence de ", input$Uvar, " en fonction du style de conduite"))
   })
   
   #Output Distribution for Univariate analysis line
   output$UDens <- renderPlot({
     if (input$Uvar != "Style de conduite")
-      ggplot(data = selectedData, aes(selectedUnivariate()[1][,1], color = selectedUnivariate()[2][,1])) + geom_density() + labs(x= input$Uvar, color = "Style de conduite") + ggtitle(paste("Densité de ", input$Uvar, " en fonction du style de conduite"))
+      ggplot(data = selectedUnivariate(), aes(selectedUnivariate()[1][,1], color = selectedUnivariate()[2][,1])) + geom_density() + labs(x= input$Uvar, color = "Style de conduite") + ggtitle(paste("Densité de ", input$Uvar, " en fonction du style de conduite"))
   })
   
   
@@ -222,10 +213,7 @@ server <- function(input, output) {
         attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
       ) %>%
       setView(lng = 2.3522219, lat = 48.856614, zoom = 11) %>% addPolylines(lng = ~longitude, lat =~latitude) %>%
-      addCircleMarkers(radius = 2, color = pal(), label = ~as.character(var1)) #%>%
-      #addLegend("bottomright", pal = pal(), values = ~as.character(var1),
-      #          title = input$Uvar,
-      #          opacity = 1)
+      addCircleMarkers(radius = 2, color = pal(), label = ~as.character(var1)) 
   })
   
   #Summary for the Univariate Analysis

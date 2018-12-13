@@ -1,0 +1,13 @@
+name: ShinyM2
+title: ShinyM2
+username:
+account: nicomahery
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 579011
+bundleId: 1759535
+url: https://nicomahery.shinyapps.io/ShinyM2/
+when: 1544653606.7608
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|Analyse.md|Analyse.pdf|README.md|Exos/app.R|www/bootstrap.css|GeoJson|images

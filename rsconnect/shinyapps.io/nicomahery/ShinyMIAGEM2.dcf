@@ -1,0 +1,13 @@
+name: ShinyMIAGEM2
+title: ShinyMIAGEM2
+username:
+account: nicomahery
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 579005
+bundleId: 1707829
+url: https://nicomahery.shinyapps.io/ShinyMIAGEM2/
+when: 1542584161.69669
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: GeoJson

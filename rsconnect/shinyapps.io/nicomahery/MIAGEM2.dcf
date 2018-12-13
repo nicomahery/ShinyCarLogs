@@ -1,0 +1,13 @@
+name: MIAGEM2
+title: MIAGEM2
+username:
+account: nicomahery
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 615575
+bundleId: 1759533
+url: https://nicomahery.shinyapps.io/MIAGEM2/
+when: 1544653459.30223
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|Analyse.md|Analyse.pdf|CarLogs.csv|README.md|Exos/app.R|www/bootstrap.css|GeoJson|images
